@@ -2,18 +2,18 @@
 
 namespace ByteRegularExpression
 {
-    public class Regex
+    public class Begex
     {
-        public RegexArg[] args;
-        public Regex(string regex)
+        public BegexArg[] args;
+        public Begex(string regex)
         {
             this.args = ParseFullBlock(regex);
         }
 
-        static RegexArg[] ParseFullBlock(string regex)
+        static BegexArg[] ParseFullBlock(string regex)
         {
             int i = 0;
-            List<RegexArg> args = new List<RegexArg>();
+            List<BegexArg> args = new List<BegexArg>();
             while(i < regex.Length)
             {
                 args.Add(ParseSingleBlock(regex,ref i));
@@ -115,9 +115,9 @@ namespace ByteRegularExpression
                 }
             }
         }
-        static RegexArg ParseSingleBlock(string regex, ref int i)
+        static BegexArg ParseSingleBlock(string regex, ref int i)
         {
-            List<List<RegexArg>> argsOrs = [[]];
+            List<List<BegexArg>> argsOrs = [[]];
             int currentOrStep = 0;
 
             while(true)
@@ -130,19 +130,19 @@ namespace ByteRegularExpression
                 switch(m)
                 {
                     case 'x':
-                        argsOrs[currentOrStep].Add(new RegexArg.OrByte(ParseSingleByte(regex, ref i)));
+                        argsOrs[currentOrStep].Add(new BegexArg.OrByte(ParseSingleByte(regex, ref i)));
                         break;
                     case 'c':
-                        argsOrs[currentOrStep].Add(new RegexArg.OrByte(ParseSingleChar(regex, ref i)));
+                        argsOrs[currentOrStep].Add(new BegexArg.OrByte(ParseSingleChar(regex, ref i)));
                         break;
                     case '.':
-                        argsOrs[currentOrStep].Add(new RegexArg.OrByte(Enumerable.Repeat(true,256).ToArray()));
+                        argsOrs[currentOrStep].Add(new BegexArg.OrByte(Enumerable.Repeat(true,256).ToArray()));
                         break;
 
                     case 's':
                         foreach(byte c in ParseString(regex, ref i))
                         {
-                            argsOrs[currentOrStep].Add(new RegexArg.OrByte(c));
+                            argsOrs[currentOrStep].Add(new BegexArg.OrByte(c));
                         }
                         break;
                     case 'h':
@@ -150,17 +150,17 @@ namespace ByteRegularExpression
                         if (chars.Length % 2 == 1) throw new Exception();
                         for(int j=0;j<chars.Length;j+=2)
                         {
-                            argsOrs[currentOrStep].Add(new RegexArg.OrByte(Convert.ToByte($"{chars[j]}{chars[j+1]}",16)));
+                            argsOrs[currentOrStep].Add(new BegexArg.OrByte(Convert.ToByte($"{chars[j]}{chars[j+1]}",16)));
                         }
                         break;
 
                     case '[':
-                        argsOrs[currentOrStep].Add(new RegexArg.OrByte(ParseOrByte(regex, ref i)));
+                        argsOrs[currentOrStep].Add(new BegexArg.OrByte(ParseOrByte(regex, ref i)));
                         break;
                     case '{':
                     openCountOf:
                         Range range = ParseCountOf(regex, ref i);
-                        return  new RegexArg.CountOf(Finalize(), range);
+                        return  new BegexArg.CountOf(Finalize(), range);
                     case '|':
                         currentOrStep++;
                         break;
@@ -179,7 +179,7 @@ namespace ByteRegularExpression
                 }
             }
             
-            RegexArg Finalize() => new RegexArg.GroupOrBytes(argsOrs.Select(x => new RegexArg.GroupBytes(x.ToArray())).ToArray());
+            BegexArg Finalize() => new BegexArg.GroupOrBytes(argsOrs.Select(x => new BegexArg.GroupBytes(x.ToArray())).ToArray());
         }
         enum ParseState
         {
@@ -227,13 +227,13 @@ namespace ByteRegularExpression
             throw new Exception();
         }
     }
-    public interface RegexArg
+    public interface BegexArg
     {
         public interface GroupWorking;
         public bool IsMatch(byte[] bytes, ref int i);
 
 
-        public class OrByte : RegexArg
+        public class OrByte : BegexArg
         {
             public OrByte(bool[] adresses)
             {
@@ -259,13 +259,13 @@ namespace ByteRegularExpression
                 return false;
             }
         }
-        public class GroupBytes : RegexArg, GroupWorking
+        public class GroupBytes : BegexArg, GroupWorking
         {
-            public GroupBytes(RegexArg[] args)
+            public GroupBytes(BegexArg[] args)
             {
                 this.args = args;
             }
-            RegexArg[] args { get; init; }
+            BegexArg[] args { get; init; }
 
             public bool IsMatch(byte[] bytes, ref int i)
             {
@@ -290,7 +290,7 @@ namespace ByteRegularExpression
             }
         }
 
-        public class GroupOrBytes : RegexArg, GroupWorking
+        public class GroupOrBytes : BegexArg, GroupWorking
         {
             public GroupOrBytes(GroupBytes[] orGroups)
             {
@@ -315,16 +315,16 @@ namespace ByteRegularExpression
                 }
             }
         }
-        public class CountOf : RegexArg, GroupWorking
+        public class CountOf : BegexArg, GroupWorking
         {
-            public CountOf(RegexArg arg, Range range)
+            public CountOf(BegexArg arg, Range range)
             {
                 this.arg = arg;
                 this.range = range;
             }
 
 
-            RegexArg arg { get; init; }
+            BegexArg arg { get; init; }
             Range range { get; init; }
             public bool IsMatch(byte[] bytes, ref int i)
             {
