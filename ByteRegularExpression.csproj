@@ -11,6 +11,8 @@
     <Copyright>yes</Copyright>
     <Authors>SurfaceCobra</Authors>
     <Company />
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
 </Project>

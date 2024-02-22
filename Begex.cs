@@ -4,7 +4,7 @@ namespace ByteRegularExpression
 {
     public class Begex
     {
-        public BegexArg[] args;
+        BegexArg[] args;
         public Begex(string regex)
         {
             this.args = ParseFullBlock(regex);
@@ -163,6 +163,7 @@ namespace ByteRegularExpression
                         return  new BegexArg.CountOf(Finalize(), range);
                     case '|':
                         currentOrStep++;
+                        argsOrs.Add([]);
                         break;
                     case '(':
                         return Finalize();
@@ -220,6 +221,7 @@ namespace ByteRegularExpression
             }
             return ranges.ToArray();
         }
+        public Range[] MatchAll(byte[] bytes) => MatchAll(bytes, 0, bytes.Length);
         public void CompileCSMatchAt()
         {
             //DynamicMethod method = new DynamicMethod("CompiledRegex", typeof((int index, int count)[]), new Type[] { typeof(byte[]), typeof(int), typeof(int) });
@@ -227,7 +229,7 @@ namespace ByteRegularExpression
             throw new Exception();
         }
     }
-    public interface BegexArg
+    internal interface BegexArg
     {
         public interface GroupWorking;
         public bool IsMatch(byte[] bytes, ref int i);
